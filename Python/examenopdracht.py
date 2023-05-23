@@ -47,3 +47,12 @@ with open(args.create, newline='') as csvfile:
         # If the user doesn't exist, create the user and set password
             subprocess.run(['useradd', '-m', '-s', '/bin/bash', '-p', crypt.crypt(password),
                         username], check=True)
+            
+        # Set correct permissions and ownership for the user's new home directory
+            # Check if the directory exists
+            if os.path.exists(home_dir):
+                subprocess.run(['rm', '-R', home_dir])
+            else:
+                subprocess.run(['usermod', '-d', home_dir, '-m', username], check=True)
+                subprocess.run(['chown', '-R', f'{username}:{groupname}', home_dir], check=True)
+                subprocess.run(['chmod', '700', home_dir], check=True)
