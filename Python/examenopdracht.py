@@ -15,7 +15,7 @@ parser.add_argument('-c', '--create', metavar='csv_file', type=str,
 parser.add_argument('-g', '--group', help='Name of the group to be created')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-f', '--file', help='CSV file containing usernames')
-group.add_argument('users', nargs='*', default=[], help='List of usernames (if -f is not specified)')
+group.add_argument('users', nargs='*', type=str, default=[''], help='List of usernames (if -f is not specified)')
 parser.add_argument('-d', '--delete', action='store_true',help='Delete specified users using options')
 delete = parser.add_mutually_exclusive_group()
 delete.add_argument('-i', '--interactive', action='store_true', help='Ask for permision before deleting users')
@@ -129,12 +129,13 @@ if args.group:
                 except subprocess.CalledProcessError:
                     print(f"User '{username}' does not exist.")
     else:
-        username = args.users
-        try:
-            subprocess.run(['usermod', '-a', '-G', group_name, username], check=True)
-            print(f"User '{username}' added to group '{group_name}'.")
-        except subprocess.CalledProcessError:
-            print(f"User '{username}' does not exist.")
+        usernames = args.users
+        for username in usernames:
+            try:
+                subprocess.run(['usermod', '-a', '-G', group_name, username], check=True)
+                print(f"User '{username}' added to group '{group_name}'.")
+            except subprocess.CalledProcessError:
+                print(f"User '{username}' does not exist.")
 
 if args.delete:
 
