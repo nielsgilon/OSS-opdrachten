@@ -56,3 +56,11 @@ with open(args.create, newline='') as csvfile:
                 subprocess.run(['usermod', '-d', home_dir, '-m', username], check=True)
                 subprocess.run(['chown', '-R', f'{username}:{groupname}', home_dir], check=True)
                 subprocess.run(['chmod', '700', home_dir], check=True)
+
+        # Update the user's password using chpasswd
+            password_input = f"{username}:{password}"
+            subprocess.run(['chpasswd'], input=password_input.encode(), check=True)
+
+        else:
+            print(f"User {username} already exists, skipping...")
+            continue
