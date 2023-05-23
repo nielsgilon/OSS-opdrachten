@@ -64,3 +64,9 @@ with open(args.create, newline='') as csvfile:
         else:
             print(f"User {username} already exists, skipping...")
             continue
+
+        # Check if the group exists, and create it if it doesn't
+        try:
+            subprocess.run(['getent', 'group', groupname], check=True)
+        except subprocess.CalledProcessError:
+            subprocess.run(['groupadd', groupname], check=True)
