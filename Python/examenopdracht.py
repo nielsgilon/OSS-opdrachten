@@ -163,7 +163,7 @@ if args.delete:
 
             if choice == '1':
                 for user in users_to_delete:
-                    subprocess.call(['userdel', user])
+                    subprocess.call(['userdel', '-r', user])
             elif choice == '2':
                 print("Aborted. No users will be deleted.")
                 pass
@@ -171,10 +171,10 @@ if args.delete:
                 for user in users_to_delete:
                     answer = input(f"Do you want to delete user '{user}'? (y/n): ")
                     if answer.lower() == 'y':
-                        subprocess.call(['userdel', user])
+                        subprocess.call(['userdel', '-r', user])
     else:
         for user in users_to_delete:
-                    subprocess.call(['userdel', user])
+                    subprocess.call(['userdel', '-r', user])
     
 
 
