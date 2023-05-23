@@ -70,3 +70,22 @@ with open(args.create, newline='') as csvfile:
             subprocess.run(['getent', 'group', groupname], check=True)
         except subprocess.CalledProcessError:
             subprocess.run(['groupadd', groupname], check=True)
+
+        # Create SSH directory and authorized_keys file if they don't exist
+        print(f"home_dir: {home_dir}")
+        ssh_dir = os.path.join(home_dir, '.ssh')
+        print(f"ssh_dir: {ssh_dir}")
+        authorized_keys_file = os.path.join(ssh_dir, 'authorized_keys')
+
+        if not os.path.exists(ssh_dir):
+            os.makedirs(ssh_dir, mode=0o700)
+            subprocess.run(['chown', '-R', f'{username}:{groupname}', ssh_dir], check=True)
+            subprocess.run(['chmod', '700', ssh_dir], check=True)
+            print(ssh_dir)
+
+        if not os.path.exists(authorized_keys_file):
+            with open(authorized_keys_file, 'w') as f:
+                f.write('')  # Write an empty string as the content
+                subprocess.run(['chown', '-R', f'{username}:{groupname}', authorized_keys_file], check=True)
+                subprocess.run(['chmod', '644', authorized_keys_file], check=True)
+                print(authorized_keys_file)
