@@ -16,6 +16,9 @@ parser.add_argument('-g', '--group', help='Name of the group to be created')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-f', '--file', help='CSV file containing usernames')
 group.add_argument('users', nargs='*', default=[], help='List of usernames (if -f is not specified)')
+parser.add_argument('-d', '--delete', action='store_true',help='Delete specified users using options')
+delete = parser.add_mutually_exclusive_group()
+delete.add_argument('-i', '--interactive', action='store_true', help='Ask for permision before deleting users')
 args = parser.parse_args()
 
 if args.create:
@@ -106,7 +109,7 @@ if args.group:
 
     group_name = args.group
 
-    # Create group
+    # Create specified group 
     try:
         subprocess.run(['groupadd', group_name], check=True)
         print(f"Group '{group_name}' created successfully.")
@@ -133,6 +136,47 @@ if args.group:
         except subprocess.CalledProcessError:
             print(f"User '{username}' does not exist.")
 
+if args.delete:
+
+    # Get all users in the students group
+    studenten_users = subprocess.check_output(['getent', 'group', 'students']).decode().split(':')[3].split(',')
+
+    # Get all users who's username starts with 's'
+    s_users = subprocess.check_output(['getent', 'passwd']).decode().split('\n')
+    s_users = [user.split(':')[0] for user in s_users if user.startswith('s')]
+
+    #Combine into a list of users to be deleted
+    users_to_delete = studenten_users + s_users
+
+    if args.interactive:
+            print("The following users will be deleted:")
+            print("\n".join(users_to_delete))
+            print()
+
+            # Prompt the user for deletion choice
+            print("Choose an action:")
+            print("1. Delete all presented users.")
+            print("2. Delete no users (abort).")
+            print("3. Loop through every user and ask if they need to be removed.")
+            choice = input("Enter your choice (1, 2, or 3): ")
+
+            if choice == '1':
+                for user in users_to_delete:
+                    subprocess.call(['userdel', user])
+            elif choice == '2':
+                print("Aborted. No users will be deleted.")
+                pass
+            elif choice == '3':
+                for user in users_to_delete:
+                    answer = input(f"Do you want to delete user '{user}'? (y/n): ")
+                    if answer.lower() == 'y':
+                        subprocess.call(['userdel', user])
+    else:
+        for user in users_to_delete:
+                    subprocess.call(['userdel', user])
+    
+
+
 
 else:
-    print(f"Please specify either the options -c/--create, -g/--group or -d/--delete with required arguments")
+    print(f"Please specify either the options -c/--create, -g/--group or -d/--delete with required subarguments")
