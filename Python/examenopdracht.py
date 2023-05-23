@@ -89,3 +89,10 @@ with open(args.create, newline='') as csvfile:
                 subprocess.run(['chown', '-R', f'{username}:{groupname}', authorized_keys_file], check=True)
                 subprocess.run(['chmod', '644', authorized_keys_file], check=True)
                 print(authorized_keys_file)
+
+        # Append public key to authorized_keys file if it's empty
+        if os.path.getsize(authorized_keys_file) == 0:
+            with open(authorized_keys_file, 'a') as f:
+                f.write(public_key + '\n')
+                
+        print(f"User {username} created successfully.")
