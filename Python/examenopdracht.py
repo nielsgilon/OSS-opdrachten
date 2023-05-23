@@ -39,3 +39,11 @@ with open(args.create, newline='') as csvfile:
         home_dir = '/home/' + email.split('@')[0]
 
         print(f"public_key: '{public_key}'")
+
+        # Check if user already exists
+        try:
+            subprocess.check_call(['id', username], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except subprocess.CalledProcessError:
+        # If the user doesn't exist, create the user and set password
+            subprocess.run(['useradd', '-m', '-s', '/bin/bash', '-p', crypt.crypt(password),
+                        username], check=True)
