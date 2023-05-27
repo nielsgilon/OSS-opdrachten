@@ -8,6 +8,10 @@ import subprocess
 import sys
 import crypt
 
+#Check if user has root privileges, exit and prompt if not
+if os.geteuid() != 0:
+    exit("You need to have root privileges to run this script.\nPlease try again, this time using 'sudo'. Exiting.")
+
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description='Create users from a CSV file, create groups specified with a file or as arguments or delete users')
 parser.add_argument('-c', '--create', metavar='csv_file', type=str,
@@ -17,9 +21,12 @@ group = parser.add_mutually_exclusive_group()
 group.add_argument('-f', '--file', help='CSV file containing usernames')
 group.add_argument('users', nargs='*', type=str, default=[''], help='List of usernames (if -f is not specified)')
 parser.add_argument('-d', '--delete', action='store_true',help='Delete specified users using options')
-delete = parser.add_mutually_exclusive_group()
-delete.add_argument('-i', '--interactive', action='store_true', help='Ask for permision before deleting users')
+deleterequired = parser.add_argument_group()
+deleterequired.add_argument('-i', '--interactive', action='store_true', help='Ask for permision before deleting users', required=False)
 args = parser.parse_args()
+
+if args.delete and not args.interactive:
+    parser.error('The subargument -i or --interactive is mandatory when selecting the optional argument -d or --delete')
 
 if args.create:
     
