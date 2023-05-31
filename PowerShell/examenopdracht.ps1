@@ -49,3 +49,11 @@ if (-not $usersOUExists) {
 # Get all groups where the AzureAD user "s121517" is a member
 $azureADUser = Get-AzureADUser -Filter "UserPrincipalName eq 's121517@ap.be'"
 $azureADGroups = Get-AzureADUserMembership -ObjectId $azureADUser.ObjectId | Where-Object { $_.ObjectType -eq "Group" }
+
+# Copy the groups to the "groups" OU in the remote AD server
+foreach ($group in $azureADGroups) {
+    $groupName = $group.DisplayName
+    $groupScope = "Universal"
+    $groupCategory = "Distribution"
+    Invoke-Command -Session $remoteADSession -ScriptBlock {New-ADGroup -Name $Using:groupName -GroupCategory $Using:groupCategory -GroupScope $Using:groupScope -Path $Using:groupsOUPath -ErrorAction SilentlyContinue} 
+}
