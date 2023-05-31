@@ -57,3 +57,42 @@ foreach ($group in $azureADGroups) {
     $groupCategory = "Distribution"
     Invoke-Command -Session $remoteADSession -ScriptBlock {New-ADGroup -Name $Using:groupName -GroupCategory $Using:groupCategory -GroupScope $Using:groupScope -Path $Using:groupsOUPath -ErrorAction SilentlyContinue} 
 }
+
+# Copy users of each group to the "users" OU in the remote AD server
+foreach ($group in $azureADGroups) { 
+    $azureADGroupMembers = Get-AzureADGroupMember -ObjectId $group.ObjectId -Top 5 | Where-Object { $_.ObjectType -eq "User" }
+    $groupParams = @{ 
+        Identity = "CN=$($group.DisplayName),$groupsOUPath"
+        Server = "PFSV1NG.PoliFormaNG.local"
+    }
+    
+
+    foreach ($member in $azureADGroupMembers) {
+        
+        
+            # Create user in the "users" OU
+            $Name = $member.DisplayName
+            $DisplayName = $member.DisplayName
+            $SamAccountName = $member.UserPrincipalName.Split('@')[0]
+            $GivenName = $member.GivenName
+            $SurName = $member.Surname
+            $UserPrincipalName = $member.UserPrincipalName
+            Invoke-Command -Session $remoteADSession -Command {New-ADUser -Name $Using:Name -DisplayName $Using:DisplayName -SamAccountName $Using:SamAccountName -GivenName $Using:GivenName -Surname $Using:SurName -UserPrincipalName $Using:UserPrincipalName -Path $Using:usersOUPath -ErrorAction SilentlyContinue}
+            
+            $userParams = @{
+                Identity = "CN=$($member.DisplayName),$usersOUPath"
+                Server = "PFSV1NG.PoliFormaNG.local"
+            }
+            
+
+            # Add user to the corresponding group in the remote AD server
+            Invoke-Command -Session $remoteADSession -ScriptBlock {Add-ADGroupMember -Identity (Get-ADGroup @Using:groupParams) -Members (Get-ADUser @Using:userParams) -Server "PFSV1NG.PoliFormaNG.local"}
+            
+    }
+}
+
+# Disconnect from the AzureAD cloud environment
+Disconnect-AzureAD
+
+# Close the remote AD server session
+Remove-PSSession $remoteADSession
