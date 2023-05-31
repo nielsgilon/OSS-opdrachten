@@ -23,3 +23,11 @@ $ouExists = Invoke-Command -Session $remoteADSession -Command {Get-ADOrganizatio
 if (-not $ouExists) {
     Invoke-RemoteCommand -Command "New-ADOrganizationalUnit -Name 'OS_Scripting_23' -Path 'DC=PoliFormaNG,DC=local'" -ErrorAction SilentlyContinue
 }
+
+# Create "s121517" OU inside "OS Scripting 23"
+$s121517OUPath = "OU=s121517,$ouPath"
+$s121517OUExists = Invoke-Command -Session $remoteADSession -Command {Get-ADOrganizationalUnit -Filter 'Name -eq "s121517"' -SearchBase $ouPath}
+
+if (-not $s121517OUExists) {
+    Invoke-RemoteCommand -Command "New-ADOrganizationalUnit -Name 's121517' -Path '$ouPath'" -ErrorAction SilentlyContinue
+}
