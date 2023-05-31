@@ -31,3 +31,17 @@ $s121517OUExists = Invoke-Command -Session $remoteADSession -Command {Get-ADOrga
 if (-not $s121517OUExists) {
     Invoke-RemoteCommand -Command "New-ADOrganizationalUnit -Name 's121517' -Path '$ouPath'" -ErrorAction SilentlyContinue
 }
+
+# Create "groups" and "users" OUs inside "s121517"
+$groupsOUPath = "OU=groups,$s121517OUPath"
+$usersOUPath = "OU=users,$s121517OUPath"
+$groupsOUExists = Invoke-Command -Session $remoteADSession -Command {Get-ADOrganizationalUnit -Filter 'Name -eq "groups"' -SearchBase $s121517OUPath}
+$usersOUExists = Invoke-Command -Session $remoteADSession -Command {Get-ADOrganizationalUnit -Filter 'Name -eq "users"' -SearchBase $s121517OUPath} 
+
+if (-not $groupsOUExists) {
+    Invoke-RemoteCommand -Command "New-ADOrganizationalUnit -Name 'groups' -Path '$s121517OUPath'" -ErrorAction SilentlyContinue
+}
+
+if (-not $usersOUExists) {
+    Invoke-RemoteCommand -Command "New-ADOrganizationalUnit -Name 'users' -Path '$s121517OUPath'" -ErrorAction SilentlyContinue
+}
