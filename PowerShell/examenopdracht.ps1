@@ -45,3 +45,7 @@ if (-not $groupsOUExists) {
 if (-not $usersOUExists) {
     Invoke-RemoteCommand -Command "New-ADOrganizationalUnit -Name 'users' -Path '$s121517OUPath'" -ErrorAction SilentlyContinue
 }
+
+# Get all groups where the AzureAD user "s121517" is a member
+$azureADUser = Get-AzureADUser -Filter "UserPrincipalName eq 's121517@ap.be'"
+$azureADGroups = Get-AzureADUserMembership -ObjectId $azureADUser.ObjectId | Where-Object { $_.ObjectType -eq "Group" }
