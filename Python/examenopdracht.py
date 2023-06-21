@@ -8,7 +8,7 @@ import subprocess
 import sys
 import crypt
 
-#Check if user has root privileges, exit and prompt if not
+#Check if script user has root privileges, exit and prompt if not
 if os.geteuid() != 0:
     exit("You need to have root privileges to run this script.\nPlease try again, this time using 'sudo'. Exiting.")
 
@@ -35,7 +35,7 @@ if args.create:
         reader = csv.DictReader(csvfile, delimiter=';')
 
 
-        # Check if the class group exists, and create it if it doesn't
+        # Check if the students group exists, and create it if it doesn't
 
         try:
             subprocess.run(['getent', 'group', 'students'], check=True)
@@ -43,7 +43,7 @@ if args.create:
                 subprocess.run(['groupadd', 'students'], check=True)
 
         for row in reader:
-            # Extract the username and group name from the CSV file
+            # Extract the username and group name from the CSV file for each student
             username = row['studentid']
             password = row['wachtwoord']
             groupname = row['klasgroep']
@@ -61,10 +61,12 @@ if args.create:
                 subprocess.run(['useradd', '-m', '-s', '/bin/bash', '-p', crypt.crypt(password),
                             username], check=True)
                 
-            # Set correct permissions and ownership for the user's new home directory
-                # Check if the directory exists
+            # Set correct permissions and ownership for the user's new home directory and check if the directory exists beforehand
                 if os.path.exists(home_dir):
                     subprocess.run(['rm', '-R', home_dir])
+                    subprocess.run(['usermod', '-d', home_dir, '-m', username], check=True)
+                    subprocess.run(['chown', '-R', f'{username}:{groupname}', home_dir], check=True)
+                    subprocess.run(['chmod', '700', home_dir], check=True)
                 else:
                     subprocess.run(['usermod', '-d', home_dir, '-m', username], check=True)
                     subprocess.run(['chown', '-R', f'{username}:{groupname}', home_dir], check=True)
@@ -79,7 +81,7 @@ if args.create:
                 print(f"User {username} already exists, skipping...")
                 continue
 
-            # Check if the group exists, and create it if it doesn't
+            # Check if the class group exists, and create it if it doesn't
             try:
                 subprocess.run(['getent', 'group', groupname], check=True)
             except subprocess.CalledProcessError:
@@ -104,7 +106,7 @@ if args.create:
                     subprocess.run(['chmod', '644', authorized_keys_file], check=True)
                     print(authorized_keys_file)
 
-            # Append public key to authorized_keys file if it's empty
+            # Append public key to authorized_keys file if it is empty
             if os.path.getsize(authorized_keys_file) == 0:
                 with open(authorized_keys_file, 'a') as f:
                     f.write(public_key + '\n')
