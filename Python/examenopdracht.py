@@ -86,9 +86,13 @@ if args.create:
                 subprocess.run(['getent', 'group', groupname], check=True)
             except subprocess.CalledProcessError:
                 subprocess.run(['groupadd', groupname], check=True)
+
+            try:    
                 subprocess.run(['usermod', '-a', '-G', groupname, username], check=True)
                 subprocess.run(['usermod', '-a', '-G', 'students', username], check=True)
-            
+            except subprocess.CalledProcessError:
+                print(f"Groups '{groupname}' and students already exists.")
+                
             # Create SSH directory and authorized_keys file if they don't exist
             print(f"home_dir: {home_dir}")
             ssh_dir = os.path.join(home_dir, '.ssh')
