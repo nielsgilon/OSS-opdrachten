@@ -81,11 +81,13 @@ if args.create:
                 print(f"User {username} already exists, skipping...")
                 continue
 
-            # Check if the class group exists, and create it if it doesn't
+            # Check if the class group exists, and create it if it doesn't + add users to 'students' and 'class' groups
             try:
                 subprocess.run(['getent', 'group', groupname], check=True)
             except subprocess.CalledProcessError:
                 subprocess.run(['groupadd', groupname], check=True)
+                subprocess.run(['usermod', '-a', '-G', groupname, username], check=True)
+                subprocess.run(['usermod', '-a', '-G', 'students', username], check=True)
             
             # Create SSH directory and authorized_keys file if they don't exist
             print(f"home_dir: {home_dir}")
